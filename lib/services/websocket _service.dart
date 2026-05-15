@@ -1,5 +1,6 @@
 /// WebSocket Service - Handles real-time updates
 /// Receives live updates from the backend server
+library;
 
 import 'dart:async';
 import 'dart:convert';
@@ -8,14 +9,12 @@ import '../core/constants.dart';
 
 class WebSocketService {
   WebSocketChannel? _channel;
-  final _messageController =
-      StreamController<Map<String, dynamic>>.broadcast();
+  final _messageController = StreamController<Map<String, dynamic>>.broadcast();
 
   bool _isConnected = false;
   Timer? _reconnectTimer;
 
-  Stream<Map<String, dynamic>> get messageStream =>
-      _messageController.stream;
+  Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
 
   bool get isConnected => _isConnected;
 
@@ -24,8 +23,7 @@ class WebSocketService {
     if (_isConnected) return;
 
     try {
-      _channel =
-          WebSocketChannel.connect(Uri.parse(AppConstants.wsUrl));
+      _channel = WebSocketChannel.connect(Uri.parse(AppConstants.wsUrl));
 
       _isConnected = true;
 
@@ -74,13 +72,10 @@ class WebSocketService {
     _channel = null;
 
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(
-      const Duration(seconds: 5),
-      () {
-        print('Attempting to reconnect WebSocket...');
-        connect();
-      },
-    );
+    _reconnectTimer = Timer(const Duration(seconds: 5), () {
+      print('Attempting to reconnect WebSocket...');
+      connect();
+    });
   }
 
   /// Manually disconnect

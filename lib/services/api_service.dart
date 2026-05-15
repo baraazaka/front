@@ -7,32 +7,34 @@ class ApiService {
   String? _token;
 
   ApiService() {
-    _dio = Dio(BaseOptions(
-      baseUrl: AppConstants.baseUrl,
-      connectTimeout: AppConstants.connectionTimeout,
-      receiveTimeout: AppConstants.receiveTimeout,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: AppConstants.baseUrl,
+        connectTimeout: AppConstants.connectionTimeout,
+        receiveTimeout: AppConstants.receiveTimeout,
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
 
     // Interceptor to handle token automatically
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        if (_token != null) {
-          options.headers['Authorization'] = 'Bearer $_token';
-        }
-        return handler.next(options);
-      },
-      onError: (error, handler) {
-        // Handle authentication errors
-        if (error.response?.statusCode == 401) {
-          // Token expired – clear token
-          _token = null;
-        }
-        return handler.next(error);
-      },
-    ));
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (_token != null) {
+            options.headers['Authorization'] = 'Bearer $_token';
+          }
+          return handler.next(options);
+        },
+        onError: (error, handler) {
+          // Handle authentication errors
+          if (error.response?.statusCode == 401) {
+            // Token expired – clear token
+            _token = null;
+          }
+          return handler.next(error);
+        },
+      ),
+    );
   }
 
   void setToken(String token) {
@@ -45,7 +47,6 @@ class ApiService {
     _token = null;
   }
 
-
   /// Register new user
   Future<User> register({
     required String username,
@@ -53,11 +54,10 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final response = await _dio.post('/api/auth/register', data: {
-        'username': username,
-        'email': email,
-        'password': password,
-      });
+      final response = await _dio.post(
+        '/api/auth/register',
+        data: {'username': username, 'email': email, 'password': password},
+      );
       return User.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -70,10 +70,10 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final response = await _dio.post('/api/auth/login', data: {
-        'username': username,
-        'password': password,
-      });
+      final response = await _dio.post(
+        '/api/auth/login',
+        data: {'username': username, 'password': password},
+      );
       final token = AuthToken.fromJson(response.data);
       setToken(token.accessToken);
       return token;
@@ -81,8 +81,6 @@ class ApiService {
       throw _handleError(e);
     }
   }
-
- 
 
   /// Start new inspection
   Future<DetectionResult> inspect() async {
@@ -104,7 +102,7 @@ class ApiService {
       final queryParams = {
         'skip': skip,
         'limit': limit,
-        if (hasAnomaly != null) 'has_anomaly': hasAnomaly,
+        'has_anomaly': ?hasAnomaly,
       };
 
       final response = await _dio.get(
@@ -148,10 +146,10 @@ class ApiService {
   /// Set flash brightness
   Future<void> setFlashBrightness(int brightness) async {
     try {
-      await _dio.post('/api/control/camera', data: {
-        'action': 'set_brightness',
-        'brightness': brightness,
-      });
+      await _dio.post(
+        '/api/control/camera',
+        data: {'action': 'set_brightness', 'brightness': brightness},
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -160,10 +158,10 @@ class ApiService {
   /// Move system to specific position
   Future<double> moveToPosition(double position) async {
     try {
-      final response = await _dio.post('/api/control/motion', data: {
-        'action': 'move_to',
-        'position': position,
-      });
+      final response = await _dio.post(
+        '/api/control/motion',
+        data: {'action': 'move_to', 'position': position},
+      );
       return (response.data['position'] as num).toDouble();
     } on DioException catch (e) {
       throw _handleError(e);
@@ -179,8 +177,6 @@ class ApiService {
       throw _handleError(e);
     }
   }
-
- 
 
   /// Get alerts
   Future<List<Alert>> getAlerts({
@@ -214,8 +210,6 @@ class ApiService {
       throw _handleError(e);
     }
   }
-
-
 
   String _handleError(DioException error) {
     if (error.response != null) {

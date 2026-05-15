@@ -33,12 +33,24 @@ dependencies:
 
   dio: ^5.4.0  
 
-  http: ^0.13.6
+  http: ^1.2.0
  
   web_socket_channel: ^2.4.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  image_picker: ^1.2.1
+  image_cropper: ^7.1.0
+  shared_preferences: ^2.2.2  # لحفظ الأرقام والبيانات
+  path_provider: ^2.1.2       # لحفظ مسار الصور بشكل دائم 
+  pdf: ^3.12.0
+  printing: ^5.13.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  fl_chart: ^1.2.0
+  share_plus: ^10.0.0
+  google_generative_ai: ^0.4.7
+  google_mlkit_image_labeling: ^0.14.2
 
 dev_dependencies:
   flutter_test:

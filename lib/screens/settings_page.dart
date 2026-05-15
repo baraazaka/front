@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -8,10 +9,59 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _notificationsEnabled = true;
-  bool _emailNotifications = true;
-  bool _pushNotifications = false;
+  // 🟢 متغيرات الإعدادات الحقيقية للتطبيق
+  final _factoryNameController = TextEditingController();
+  final _inspectorNameController = TextEditingController();
+  double _aiConfidence = 35.0;
+  late Box _myBox;
+
+  // 🟢 متغيرات الإعدادات الشكلية (من تصميمك)
   String _selectedLanguage = 'English';
+
+  @override
+  void initState() {
+    super.initState();
+    _myBox = Hive.box('fabricBox');
+    _loadSettings();
+  }
+
+  // 🟢 تحميل الإعدادات من قاعدة البيانات
+  void _loadSettings() {
+    setState(() {
+      _factoryNameController.text = _myBox.get(
+        'factoryName',
+        defaultValue: 'Fabric AI System',
+      );
+      _inspectorNameController.text = _myBox.get(
+        'inspectorName',
+        defaultValue: 'Unknown Inspector',
+      );
+      _aiConfidence = _myBox.get('aiConfidence', defaultValue: 35.0);
+    });
+  }
+
+  // 🟢 حفظ الإعدادات في قاعدة البيانات
+  void _saveSettings() {
+    _myBox.put('factoryName', _factoryNameController.text.trim());
+    _myBox.put('inspectorName', _inspectorNameController.text.trim());
+    _myBox.put('aiConfidence', _aiConfidence);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Settings saved successfully!'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    Navigator.pop(context); // العودة بعد الحفظ
+  }
+
+  @override
+  void dispose() {
+    _factoryNameController.dispose();
+    _inspectorNameController.dispose();
+    super.dispose();
+  }
 
   void _logout() {
     showDialog(
@@ -26,10 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -63,111 +110,103 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         title: const Text(
           'Settings',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Notifications Section
-          _buildSectionTitle('Notifications'),
+          // 🟢 القسم الأول: إعدادات الذكاء الاصطناعي (حقيقية)
+          _buildSectionTitle('AI Configuration'),
           Container(
             decoration: _buildCardDecoration(),
+            padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SwitchListTile(
-                  title: const Text(
-                    'Enable Notifications',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'AI Sensitivity',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  subtitle: Text(
-                    'Receive all app notifications',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE91E63).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_aiConfidence.toInt()}%',
+                        style: const TextStyle(
+                          color: Color(0xFFE91E63),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderThemeData(
+                    activeTrackColor: const Color(0xFFE91E63),
+                    inactiveTrackColor: const Color(
+                      0xFFE91E63,
+                    ).withOpacity(0.2),
+                    thumbColor: const Color(0xFFE91E63),
+                    overlayColor: const Color(0xFFE91E63).withOpacity(0.2),
+                    trackHeight: 4,
                   ),
-                  value: _notificationsEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _notificationsEnabled = value;
-                    });
-                  },
-                  activeColor: const Color(0xFFE91E63),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 4,
+                  child: Slider(
+                    value: _aiConfidence,
+                    min: 10,
+                    max: 90,
+                    divisions: 16,
+                    onChanged: (value) => setState(() => _aiConfidence = value),
                   ),
                 ),
-                _buildDivider(),
-                SwitchListTile(
-                  title: const Text(
-                    'Email Notifications',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Get updates via email',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  value: _emailNotifications,
-                  onChanged: (value) {
-                    setState(() {
-                      _emailNotifications = value;
-                    });
-                  },
-                  activeColor: const Color(0xFFE91E63),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 4,
-                  ),
-                ),
-                _buildDivider(),
-                SwitchListTile(
-                  title: const Text(
-                    'Push Notifications',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Receive push notifications',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  value: _pushNotifications,
-                  onChanged: (value) {
-                    setState(() {
-                      _pushNotifications = value;
-                    });
-                  },
-                  activeColor: const Color(0xFFE91E63),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 4,
-                  ),
+                Text(
+                  'Higher value reduces false defect alarms.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 20),
 
-          // App Preferences Section
+          // 🟢 القسم الثاني: إعدادات التقارير والـ PDF (حقيقية)
+          _buildSectionTitle('Report Settings'),
+          Container(
+            decoration: _buildCardDecoration(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildTextField(
+                  controller: _factoryNameController,
+                  label: 'Factory Name',
+                  hint: 'Appears on PDF reports',
+                  icon: Icons.factory_rounded,
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _inspectorNameController,
+                  label: 'Inspector Name',
+                  hint: 'E.g. John Doe',
+                  icon: Icons.badge_rounded,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // 🔵 القسم الثالث: تفضيلات التطبيق (من تصميمك)
           _buildSectionTitle('App Preferences'),
           Container(
             decoration: _buildCardDecoration(),
@@ -177,105 +216,68 @@ class _SettingsPageState extends State<SettingsPage> {
                   Icons.language_rounded,
                   'Language',
                   _selectedLanguage,
-                  () {
-                    _showLanguagePicker();
-                  },
+                  () => _showLanguagePicker(),
                 ),
                 _buildDivider(),
                 _buildSettingTile(
                   Icons.dark_mode_outlined,
                   'Theme',
                   'Light',
-                  () {
-                    // Show theme picker
-                  },
+                  () {},
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 20),
 
-          // Security Section
-          _buildSectionTitle('Security'),
+          // 🔵 القسم الرابع: القانونية والحساب (من تصميمك)
+          _buildSectionTitle('Account & Legal'),
           Container(
             decoration: _buildCardDecoration(),
             child: Column(
               children: [
-                _buildSettingTile(
-                  Icons.lock_outline_rounded,
-                  'Change Password',
-                  'Update your password',
-                  () {
-                    // Navigate to change password
-                  },
-                ),
-                _buildDivider(),
-                _buildSettingTile(
-                  Icons.security_rounded,
-                  'Privacy & Security',
-                  'Manage your privacy settings',
-                  () {
-                    // Navigate to privacy settings
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Legal Section
-          _buildSectionTitle('Legal'),
-          Container(
-            decoration: _buildCardDecoration(),
-            child: Column(
-              children: [
-                _buildSettingTile(
-                  Icons.description_outlined,
-                  'Terms of Service',
-                  'Read our terms',
-                  () {
-                    // Show terms
-                  },
-                ),
-                _buildDivider(),
                 _buildSettingTile(
                   Icons.privacy_tip_outlined,
                   'Privacy Policy',
                   'Read our privacy policy',
-                  () {
-                    // Show privacy policy
-                  },
+                  () {},
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Danger Zone Section
-          _buildSectionTitle('Danger Zone'),
-          Container(
-            decoration: _buildCardDecoration(),
-            child: Column(
-              children: [
+                _buildDivider(),
                 _buildSettingTile(
                   Icons.delete_outline_rounded,
                   'Delete Account',
-                  'Permanently delete your account',
-                  () {
-                    _showDeleteAccountDialog();
-                  },
+                  'Permanently delete your data',
+                  () => _showDeleteAccountDialog(),
                   textColor: Colors.red,
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 30),
 
-          // Logout Button
+          // 🟢 زر الحفظ الحقيقي
+          ElevatedButton(
+            onPressed: _saveSettings,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE91E63),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              minimumSize: const Size(double.infinity, 55),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Save Changes',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 🔵 زر تسجيل الخروج (من تصميمك)
           OutlinedButton(
             onPressed: _logout,
             style: OutlinedButton.styleFrom(
@@ -293,20 +295,20 @@ class _SettingsPageState extends State<SettingsPage> {
                 SizedBox(width: 8),
                 Text(
                   'Logout',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 30),
         ],
       ),
     );
   }
+
+  // ==========================================
+  // 🎨 الودجتس المساعدة
+  // ==========================================
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -336,6 +338,49 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(icon, size: 20, color: Colors.grey[600]),
+            filled: true,
+            fillColor: Colors.grey[100],
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE91E63), width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSettingTile(
     IconData icon,
     String title,
@@ -345,10 +390,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }) {
     return ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 8,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -371,10 +413,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.grey[600],
-        ),
+        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
       ),
       trailing: Icon(
         Icons.arrow_forward_ios_rounded,
@@ -385,11 +424,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: Colors.grey[200],
-    );
+    return Divider(height: 1, thickness: 1, color: Colors.grey[200]);
   }
 
   void _showLanguagePicker() {
@@ -406,16 +441,11 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               const Text(
                 'Select Language',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               _buildLanguageOption('English'),
               _buildLanguageOption('العربية'),
-              _buildLanguageOption('Español'),
-              _buildLanguageOption('Français'),
               const SizedBox(height: 20),
             ],
           ),
@@ -431,9 +461,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ? const Icon(Icons.check_circle, color: Color(0xFFE91E63))
           : null,
       onTap: () {
-        setState(() {
-          _selectedLanguage = language;
-        });
+        setState(() => _selectedLanguage = language);
         Navigator.pop(context);
       },
     );
@@ -460,10 +488,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Delete account logic
-              },
+              onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 shape: RoundedRectangleBorder(

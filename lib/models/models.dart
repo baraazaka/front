@@ -1,5 +1,6 @@
 /// Data Models
 /// Represents the data received from the API
+library;
 
 import 'dart:convert';
 
@@ -45,10 +46,7 @@ class AuthToken {
   final String accessToken;
   final String tokenType;
 
-  AuthToken({
-    required this.accessToken,
-    required this.tokenType,
-  });
+  AuthToken({required this.accessToken, required this.tokenType});
 
   factory AuthToken.fromJson(Map<String, dynamic> json) {
     return AuthToken(
@@ -114,10 +112,9 @@ class DetectionResult {
   }
 
   /// Returns full image URL
-  String get fullImageUrl =>
-      imagePath.startsWith('http')
-          ? imagePath
-          : 'http://192.168.1.100:8000/$imagePath';
+  String get fullImageUrl => imagePath.startsWith('http')
+      ? imagePath
+      : 'http://192.168.1.100:8000/$imagePath';
 }
 
 /// Anomaly Grid Cell Model
@@ -198,8 +195,7 @@ class SystemStatus {
     return SystemStatus(
       cameraActive: json['camera_active'],
       motionActive: json['motion_active'],
-      currentPosition:
-          (json['current_position'] as num).toDouble(),
+      currentPosition: (json['current_position'] as num).toDouble(),
       flashBrightness: json['flash_brightness'],
       isInspecting: json['is_inspecting'],
       lastDetection: json['last_detection'] != null

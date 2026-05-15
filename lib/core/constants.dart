@@ -1,13 +1,12 @@
 /// Constants File
 /// Contains all constant values used in the application
+library;
 
 class AppConstants {
   // API Configuration
   //  IMPORTANT: Change this IP to your Raspberry Pi IP address
- static const String baseUrl = "http://localhost:8000";
- static const String wsUrl = 'ws://localhost:8000/ws';
-
-
+  static const String baseUrl = "http://localhost:8000";
+  static const String wsUrl = 'ws://localhost:8000/ws';
 
   // Timeouts
   static const Duration connectionTimeout = Duration(seconds: 10);

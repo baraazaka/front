@@ -4,7 +4,7 @@ import 'screens/dashboard.dart';
 import 'screens/result_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -14,7 +14,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const FabricDashboard(),
+    FabricDashboard(),
     const ResultPage(),
     const CreateProfileScreen(),
   ];
@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
     required String label,
   }) {
     final isSelected = _selectedIndex == index;
-    
+
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
